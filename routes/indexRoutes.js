@@ -20,6 +20,7 @@ const { getDashboardSummary, getSalesByCategory, getRevenueStatistics, getRecent
 const { GetPaymentSummary, GetPaymentDistribution, getPaymentComparison, getTransactionDetails, getalldatabyseller } = require("../controller/paymentDashBoardController");
 const upload = require("../helper/imageUplode");
 const { auth } = require("../helper/authToken");
+const { createSubCategory, getAllSubCategory, getSubCategoryById, updateSubCategoryById, deleteSubCategoryById, deleteAllSubCatrgory } = require("../controller/subCategoryController");
 const indexRoutes = express.Router();
 
 // auth Routes
@@ -78,6 +79,17 @@ indexRoutes.get('/allCategory', getAllCategory)
 indexRoutes.get('/getCategory/:id', auth(['admin', 'user']), getCategoryById)
 indexRoutes.put('/updateCategory/:id', auth(['admin']), upload.single('categoryImage'), updateCategoryById)
 indexRoutes.delete('/deleteCategory/:id', auth(['admin']), deleteCategoryById)
+
+// Sub Category Routes
+
+indexRoutes.post('/createSubCategory', auth(['admin']), upload.single('subCategoryImage'), createSubCategory);
+indexRoutes.get('/AllSubCategory', auth(['admin', 'user']), getAllSubCategory);
+indexRoutes.get('/getUserSubCategory', getAllSubCategory);
+indexRoutes.get('/getSubCategory/:id', auth(['admin', 'user']), getSubCategoryById)
+indexRoutes.get('/userGetSubCategory/:id', getSubCategoryById)
+indexRoutes.put('/updateSubCategory/:id', auth(['admin']), upload.single('subCategoryImage'), updateSubCategoryById);
+indexRoutes.delete('/deleteSubCategory/:id', auth(['admin']), deleteSubCategoryById)
+indexRoutes.delete('/deleteAllSubCategory', auth(['admin']), deleteAllSubCatrgory);
 
 // address Routes
 

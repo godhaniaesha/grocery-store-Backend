@@ -6,6 +6,11 @@ const productSchema = mongoose.Schema({
         ref: 'categories',
         require: true
     },
+    subCategoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'subCategory',
+        required: true
+    },
     productName: {
         type: String,
         require: true
@@ -20,7 +25,12 @@ const productSchema = mongoose.Schema({
     images: {
         type: Array,
         require: true
+    },
+    tags: {
+        type: Array,
+        require: true
     }
+
 
 }, {
     timestamps: true,
