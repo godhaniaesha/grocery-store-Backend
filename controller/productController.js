@@ -3,7 +3,7 @@ const product = require('../models/productModels')
 
 exports.createProduct = async (req, res) => {
     try {
-        let { categoryId, productName, description, specifications, images } = req.body
+        let { categoryId, productName, description, specifications, images,subCategoryId,tags } = req.body
 
         let checkProductNameIsExist = await product.findOne({ productName })
 
@@ -20,7 +20,9 @@ exports.createProduct = async (req, res) => {
             productName,
             description,
             specifications: typeof specifications === 'string' ? JSON.parse(specifications) : specifications,
-            images: req.files['images'].map(file => file.path)
+            images: req.files['images'].map(file => file.path),
+            subCategoryId,
+            tags
         })
 
         return res.status(201).json({ status: 201, success: true, message: "Product Create successFully....", data: checkProductNameIsExist })
@@ -48,6 +50,14 @@ exports.getAllProducts = async (req, res) => {
                     localField: "categoryId",
                     foreignField: "_id",
                     as: "categoryData"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'subCategory',
+                    localField: "subCategoryId",
+                    foreignField: "_id",
+                    as: "subcategoryData"
                 }
             },
             {
@@ -96,6 +106,14 @@ exports.getProductById = async (req, res) => {
                     localField: "categoryId",
                     foreignField: "_id",
                     as: "categoryData"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'subCategory',
+                    localField: "subCategoryId",
+                    foreignField: "_id",
+                    as: "subcategoryData"
                 }
             },
             {
@@ -160,10 +178,12 @@ exports.updateProductById = async (req, res) => {
         // Build update object
         const updateData = {
             categoryId: req.body.categoryId,
+            categoryId: req.body.subCategoryId,
             productName: req.body.productName,
             description: req.body.description,
             images: combinedImages,
-            specifications: specifications
+            specifications: specifications,
+           tags: req.body.tags
         };
 
         const updatedProduct = await product.findByIdAndUpdate(id, updateData, { new: true });
@@ -218,6 +238,14 @@ exports.getProductByCategory = async (req, res) => {
                     localField: "categoryId",
                     foreignField: "_id",
                     as: "categoryData"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'subCategory',
+                    localField: "subCategoryId",
+                    foreignField: "_id",
+                    as: "subcategoryData"
                 }
             },
             {
