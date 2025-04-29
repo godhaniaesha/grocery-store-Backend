@@ -3,7 +3,7 @@ const product = require('../models/productModels')
 
 exports.createProduct = async (req, res) => {
     try {
-        let { categoryId, productName, description, specifications, images,subCategoryId,tags } = req.body
+        let { categoryId, productName, description, images,subCategoryId,tags } = req.body
 
         let checkProductNameIsExist = await product.findOne({ productName })
 
@@ -19,7 +19,7 @@ exports.createProduct = async (req, res) => {
             categoryId,
             productName,
             description,
-            specifications: typeof specifications === 'string' ? JSON.parse(specifications) : specifications,
+           
             images: req.files['images'].map(file => file.path),
             subCategoryId,
             tags
@@ -164,17 +164,7 @@ exports.updateProductById = async (req, res) => {
 
         const combinedImages = [...imagesToKeep, ...newImages];
 
-        let specifications = {};
-        if (req.body.specifications) {
-            try {
-                specifications = typeof req.body.specifications === 'string'
-                    ? JSON.parse(req.body.specifications)
-                    : req.body.specifications;
-            } catch (err) {
-                console.log('Error parsing specifications:', err);
-            }
-        }
-
+    
         // Build update object
         const updateData = {
             categoryId: req.body.categoryId,
@@ -182,7 +172,7 @@ exports.updateProductById = async (req, res) => {
             productName: req.body.productName,
             description: req.body.description,
             images: combinedImages,
-            specifications: specifications,
+         
            tags: req.body.tags
         };
 

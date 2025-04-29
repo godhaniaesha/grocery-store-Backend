@@ -19,9 +19,6 @@ const productSchema = mongoose.Schema({
         type: String,
         require: true
     },
-    specifications: {
-        type: mongoose.Schema.Types.Mixed
-    },
     images: {
         type: Array,
         require: true
