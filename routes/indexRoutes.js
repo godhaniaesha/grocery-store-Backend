@@ -22,6 +22,7 @@ const upload = require("../helper/imageUplode");
 const { auth } = require("../helper/authToken");
 const { createSubCategory, getAllSubCategory, getSubCategoryById, updateSubCategoryById, deleteSubCategoryById, deleteAllSubCatrgory } = require("../controller/subCategoryController");
 const indexRoutes = express.Router();
+const { createWishlist, getAllMyWishlist, deleteWishlistItem } = require("../controller/wishlistController");
 
 // auth Routes
 
@@ -200,5 +201,10 @@ indexRoutes.get('/allReasons', auth(['admin', 'user']), getAllReasons)
 indexRoutes.get('/getReason/:id', auth(['admin', 'user']), getReasonById)
 indexRoutes.put('/updateReason/:id', auth(['admin']), updateReasonById)
 indexRoutes.delete('/deleteReason/:id', auth(['admin']), deleteReasonById)
+
+// Wishlist Routes
+indexRoutes.post('/createWishlist', auth(['admin', 'user']), createWishlist)
+indexRoutes.get('/myWishlist', auth(['admin', 'user']), getAllMyWishlist)
+indexRoutes.delete('/deleteWishlist/:id', auth(['admin', 'user']), deleteWishlistItem)
 
 module.exports = indexRoutes;

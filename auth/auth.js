@@ -197,6 +197,7 @@ exports.forgotPassword = async (req, res) => {
         .json({
           status: 200,
           success: true,
+          userId: chekcEmail.email, // For localStorage
           message: "Email Sent SuccessFully...",
         });
     });
