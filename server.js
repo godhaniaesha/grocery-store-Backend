@@ -7,14 +7,20 @@ const port = process.env.PORT || 4000;
 const path = require('path');
 const cors = require('cors');
 
-server.use(express.json());
-
+// Apply CORS before any route handling
 server.use(cors({
   origin: 'http://localhost:3000',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Headers']
 }));
+
+// Add a specific handler for OPTIONS requests
+server.options('*', cors());
+
+// Increase payload size limit for JSON
+server.use(express.json({ limit: '50mb' }));
+server.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Increase the timeout for the server
 server.timeout = 60000; // 60 seconds
