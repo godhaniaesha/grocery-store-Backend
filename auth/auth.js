@@ -1,6 +1,19 @@
 const user = require("../models/userModels");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const twilio = require("twilio");
+
+// Initialize Twilio client
+const client = twilio(
+  
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// Generate 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
 const nodemailer = require("nodemailer");
 const otp = 456789;
 
@@ -117,38 +130,41 @@ exports.userLogin = async (req, res) => {
 
 exports.emailOtpVerify = async (req, res) => {
   try {
-    let { email, otp } = req.body;
-    console.log(otp);
+    let { phone, otp } = req.body;
+    console.log(otp, phone, "otp");
 
-    let checkEmailIsExist = await user.findOne({ email });
+    const mobileNo = phone;
+    let checkMobileExists = await user.findOne({ mobileNo });
+    console.log(checkMobileExists, "checkMobileExists");
 
-    if (!checkEmailIsExist) {
+    if (!checkMobileExists) {
       return res
         .status(404)
-        .json({ status: 404, success: false, message: "Email Not Found" });
+        .json({ status: 404, success: false, message: "Mobile Number Not Found" });
     }
+    console.log(checkMobileExists.otp, "otp11");
 
-    if (checkEmailIsExist.otp != otp) {
+    if (checkMobileExists.otp != otp) {
       return res
         .status(200)
-        .json({ status: 200, success: false, message: "Invalid Otp" });
+        .json({ status: 200, success: false, message: "Invalid OTP" });
     }
 
-    if (checkEmailIsExist.otp === 159875) {
-      checkEmailIsExist.filledSteps = 2;
+    if (checkMobileExists.otp === 159875) {
+      checkMobileExists.filledSteps = 2;
     }
 
-    checkEmailIsExist.otp = undefined;
+    checkMobileExists.otp = undefined;
 
-    await checkEmailIsExist.save();
+    await checkMobileExists.save();
 
     return res
       .status(200)
       .json({
         status: 200,
         success: true,
-        message: "Otp Verified Successfully",
-        data: checkEmailIsExist,
+        message: "OTP Verified Successfully",
+        data: checkMobileExists,
       });
   } catch (error) {
     console.log(error);
@@ -157,60 +173,64 @@ exports.emailOtpVerify = async (req, res) => {
       .json({ status: 500, success: false, message: error.message });
   }
 };
-
 exports.forgotPassword = async (req, res) => {
   try {
-    let { email } = req.body;
+    let { mobileNo } = req.body;
 
-    let chekcEmail = await user.findOne({ email });
+    let checkUser = await user.findOne({ mobileNo });
+    console.log(checkUser, "checkUser");
 
-    if (!chekcEmail) {
+    if (!checkUser) {
       return res
         .status(404)
-        .json({ status: 404, success: false, message: "Email Not Found" });
+        .json({ status: 404, success: false, message: "Mobile Number Not Found" });
     }
 
-    const transport = await nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    const newOtp = generateOTP();
+    console.log(newOtp, "newOtp");
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Forgot Password Otp",
-      text: `Your Code is ${otp}`,
-    };
+    // ✅ Update user with new OTP BEFORE sending
+    checkUser.otp = newOtp;
+    checkUser.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await checkUser.save(); // ✅ Immediately save updated OTP
+        console.log(checkUser, "checkUser");
 
-    transport.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.log(error);
-        return res
-          .status(500)
-          .json({ status: 500, success: false, message: error.message });
-      }
-      return res
-        .status(200)
-        .json({
-          status: 200,
-          success: true,
-          userId: chekcEmail.email, // For localStorage
-          message: "Email Sent SuccessFully...",
-        });
-    });
+    try {
+      const message = await client.messages.create({
+        body: `Your verification code is: ${newOtp}`,
+        to: `+91${mobileNo}`,
+        from: process.env.TWILIO_PHONE_NUMBER
+      });
 
-    chekcEmail.otp = otp;
-    await chekcEmail.save();
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        userId: checkUser.mobileNo,
+        message: "OTP Sent Successfully..."
+      });
+
+    } catch (twilioError) {
+      console.error('Twilio Error Details:', {
+        code: twilioError.code,
+        message: twilioError.message,
+        moreInfo: twilioError.moreInfo
+      });
+      return res.status(500).json({
+        status: 500,
+        success: false,
+        message: `Failed to send OTP: ${twilioError.message}`
+      });
+    }
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ status: 500, success: false, message: error.message });
+    console.error('Server Error:', error);
+    return res.status(500).json({
+      status: 500,
+      success: false,
+      message: error.message
+    });
   }
 };
+
 
 let newOtp = 987654;
 
@@ -269,9 +289,9 @@ exports.resendOtp = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, newPassword, confirmPassword } = req.body;
+    const { mobileNo, newPassword, confirmPassword } = req.body;
 
-    const getUser = await user.findOne({ email });
+    const getUser = await user.findOne({ mobileNo });
 
     if (!getUser) {
       return res.status(404).json({
@@ -293,7 +313,7 @@ exports.resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     await user.findOneAndUpdate(
-      { email },
+      { mobileNo },
       { password: hashedPassword },
       { new: true }
     );

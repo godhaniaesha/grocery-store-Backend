@@ -3,7 +3,7 @@ const product = require('../models/productModels')
 
 exports.createProduct = async (req, res) => {
     try {
-        let { categoryId, productName, description, images,subCategoryId,tags } = req.body
+        let { categoryId, productName, description, images, subCategoryId, tags } = req.body
 
         let checkProductNameIsExist = await product.findOne({ productName })
 
@@ -19,7 +19,7 @@ exports.createProduct = async (req, res) => {
             categoryId,
             productName,
             description,
-           
+
             images: req.files['images'].map(file => file.path),
             subCategoryId,
             tags
@@ -109,11 +109,17 @@ exports.getProductById = async (req, res) => {
                 }
             },
             {
+                $unwind: {
+                    path: "$productData",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
                 $lookup: {
-                    from: 'subCategory',
-                    localField: "subCategoryId",
+                    from: 'subCategory', // or 'subcategories' if that's your collection name
+                    localField: "productData.subCategoryId",
                     foreignField: "_id",
-                    as: "subcategoryData"
+                    as: "productData.subcategoryData"
                 }
             },
             {
@@ -141,7 +147,7 @@ exports.updateProductById = async (req, res) => {
     try {
         const id = req.params.id;
         let updateProductId = await product.findById(id)
-;
+            ;
 
         if (!updateProductId) {
             return res.status(404).json({ status: 404, success: false, message: "Product Not Found" });
@@ -164,7 +170,7 @@ exports.updateProductById = async (req, res) => {
 
         const combinedImages = [...imagesToKeep, ...newImages];
 
-    
+
         // Build update object
         const updateData = {
             categoryId: req.body.categoryId,
@@ -172,8 +178,8 @@ exports.updateProductById = async (req, res) => {
             productName: req.body.productName,
             description: req.body.description,
             images: combinedImages,
-         
-           tags: req.body.tags
+
+            tags: req.body.tags
         };
 
         const updatedProduct = await product.findByIdAndUpdate(id, updateData, { new: true });
