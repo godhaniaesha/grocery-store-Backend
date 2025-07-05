@@ -105,6 +105,22 @@ exports.getPaymentById = async (req, res) => {
             },
             {
                 $lookup: {
+                    from: "products",
+                    localField: "orderData.items.productId", // Correctly references all product IDs from items
+                    foreignField: "_id",
+                    as: "productData"
+                }
+            },
+            {
+                $lookup: {
+                    from: "productvarients", 
+                    localField: "orderData.items.productVarientId", // Corrected: This will now gather all productVarientIds
+                    foreignField: "_id",
+                    as: "productVarientData"
+                }
+            },
+            {
+                $lookup: {
                     from: 'users',
                     localField: 'orderData.userId',
                     foreignField: '_id',
@@ -113,7 +129,7 @@ exports.getPaymentById = async (req, res) => {
             }
         ])
 
-        if (!getPaymentId) {
+        if (!getPaymentId || getPaymentId.length === 0) { // Added length check for robustness
             return res.status(404).json({ status: 404, success: false, message: "Payment Not Found" })
         }
 
@@ -124,3 +140,5 @@ exports.getPaymentById = async (req, res) => {
         return res.status(500).json({ status: 500, success: false, message: error.message })
     }
 }
+
+               

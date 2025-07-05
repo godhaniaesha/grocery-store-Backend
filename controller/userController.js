@@ -61,6 +61,7 @@ exports.createAdminUser = async (req, res) => {
       process.env.SECRET_KEY,
       { expiresIn: "1D" }
     );
+    console.log(otp, "otp");
 
     return res.status(201).json({
       status: 201,
@@ -77,9 +78,80 @@ exports.createAdminUser = async (req, res) => {
   }
 };
 
+// exports.createUser = async (req, res) => {
+//   try {
+//     let { firstName, lastName, email, password,mobileNo } = req.body;
+
+//     let checkUserIsExist = await user.findOne({ email });
+
+//     if (checkUserIsExist) {
+//       return res.status(409).json({
+//         status: 409,
+//         success: false,
+//         message: "User Is Already Exist",
+//       });
+//     }
+
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+
+//     checkUserIsExist = await user.create({
+//       firstName,
+//       lastName,
+//       email,
+//       password: hashedPassword,
+//       otp,
+//       role: "user",
+//       mobileNo,
+//     });
+
+//     const transport = nodemailer.createTransport({
+//       service: "Gmail",
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     const mailOptions = {
+//       from: process.env.EMAIL_USER,
+//       to: email,
+//       subject: "Email Verification Code",
+//       text: `Your code is: ${otp} `,
+//     };
+
+//     transport.sendMail(mailOptions, (error) => {
+//       if (error) {
+//         console.log(error);
+//         return res
+//           .status(500)
+//           .json({ status: 500, success: false, message: error.message });
+//       }
+//     });
+
+//     let token = jwt.sign(
+//       { _id: checkUserIsExist._id },
+//       process.env.SECRET_KEY,
+//       { expiresIn: "1D" }
+//     );
+
+//     return res.status(201).json({
+//       status: 201,
+//       message: "User Create SuccessFully...",
+//       user: checkUserIsExist,
+//       token: token
+//     });
+
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ status: 500, message: error.message });
+//   }
+// };
+
+
 exports.createUser = async (req, res) => {
   try {
-    let { firstName, lastName, email, password } = req.body;
+    let { firstName, lastName, email, password, mobileNo } = req.body;
 
     let checkUserIsExist = await user.findOne({ email });
 
@@ -101,42 +173,25 @@ exports.createUser = async (req, res) => {
       password: hashedPassword,
       otp,
       role: "user",
+      mobileNo,
     });
 
-    const transport = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Email Verification Code",
-      text: `Your code is: ${otp} `,
-    };
-
-    transport.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.log(error);
-        return res
-          .status(500)
-          .json({ status: 500, success: false, message: error.message });
-      }
-    });
-
+    // Generate token like userLogin
     let token = jwt.sign(
       { _id: checkUserIsExist._id },
       process.env.SECRET_KEY,
       { expiresIn: "1D" }
     );
 
+    console.log(token, "token");
+
+
+    // Send token in response
     return res.status(201).json({
       status: 201,
+      success: true,
       message: "User Create SuccessFully...",
-      user: checkUserIsExist,
+      data: checkUserIsExist,
       token: token
     });
 
@@ -145,7 +200,6 @@ exports.createUser = async (req, res) => {
     return res.status(500).json({ status: 500, message: error.message });
   }
 };
-
 let newOtp = 654321;
 
 exports.resendRegisterOtp = async (req, res) => {
