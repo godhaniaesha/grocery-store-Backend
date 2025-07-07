@@ -174,7 +174,7 @@ exports.updateProductById = async (req, res) => {
         // Build update object
         const updateData = {
             categoryId: req.body.categoryId,
-            categoryId: req.body.subCategoryId,
+            subCategoryId: req.body.subCategoryId,
             productName: req.body.productName,
             description: req.body.description,
             images: combinedImages,

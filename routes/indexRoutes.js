@@ -115,7 +115,7 @@ indexRoutes.get('/getProductByCategory/:id', getProductByCategory)
 indexRoutes.post('/createProductVarient', auth(['admin']), createProductVarient)
 indexRoutes.get('/allProductVarient', getAllProductVarient)
 indexRoutes.get('/getProductVarient/:id', auth(['admin', 'user']), getProductVarientById)
-indexRoutes.put('/updateProductVarient/:id', auth(['admin']), updateProductVarientById)
+    indexRoutes.put('/updateProductVarient/:id', auth(['admin']), updateProductVarientById)
 indexRoutes.delete('/deleteProductVarient/:id', auth(['admin']), deleteProductVarientById)
 indexRoutes.get('/getOwnProductVar', auth(['admin', 'user']), getOwnProductVar)
 
