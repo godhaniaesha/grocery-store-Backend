@@ -3,36 +3,39 @@ const product = require('../models/productModels')
 
 exports.createProduct = async (req, res) => {
     try {
-        let { categoryId, productName, description, images, subCategoryId, tags } = req.body
+        const { categoryId, productName, description, subCategoryId, tags } = req.body;
 
-        let checkProductNameIsExist = await product.findOne({ productName })
-
+        // Check if product name already exists
+        const checkProductNameIsExist = await product.findOne({ productName });
         if (checkProductNameIsExist) {
-            return res.status(409).json({ status: 409, success: false, message: "ProductName already exist" })
+            return res.status(409).json({ status: 409, success: false, message: "ProductName already exist" });
         }
 
-        if (!req.files) {
-            return res.status(403).json({ status: 403, success: false, message: "Image Filed Is required" })
+        // Check for images in req.files
+        if (!req.files || !req.files['images'] || req.files['images'].length === 0) {
+            return res.status(403).json({ status: 403, success: false, message: "Image Field Is required" });
         }
 
-        checkProductNameIsExist = await product.create({
+        // Create the product
+        const newProduct = await product.create({
             categoryId,
             productName,
             description,
-
             images: req.files['images'].map(file => file.path),
             subCategoryId,
             tags
-        })
+        });
 
-        return res.status(201).json({ status: 201, success: true, message: "Product Create successFully....", data: checkProductNameIsExist })
+        // Log the created product
+        console.log("Product created successfully:", newProduct);
+
+        return res.status(201).json({ status: 201, success: true, message: "Product Create successFully....", data: newProduct });
 
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({ status: 500, success: false, message: error.message })
+        console.log(error);
+        return res.status(500).json({ status: 500, success: false, message: error.message });
     }
-}
-
+};
 
 exports.getAllProducts = async (req, res) => {
     try {
@@ -70,19 +73,19 @@ exports.getAllProducts = async (req, res) => {
             }
         ])
 
-        let count = paginatedProducts.length
+        let count = paginatedProducts.length; // <-- Make sure this is here
 
         if (count === 0) {
-            return res.status(404).json({ status: 404, success: false, message: "Product Not Found" })
+            return res.status(404).json({ status: 404, success: false, message: "Product Not Found" });
         }
 
         if (page && pageSize) {
-            let startIndex = (page - 1) * pageSize
-            let lastIndex = (startIndex + pageSize)
-            paginatedProducts = await paginatedProducts.slice(startIndex, lastIndex)
+            let startIndex = (page - 1) * pageSize;
+            let lastIndex = (startIndex + pageSize);
+            paginatedProducts = await paginatedProducts.slice(startIndex, lastIndex);
         }
 
-        return res.status(200).json({ status: 200, success: true, totalProducts: count, message: "All Products Found SuccessFully...", data: paginatedProducts })
+        return res.status(200).json({ status: 200, success: true, totalProducts: count, message: "All Products Found SuccessFully...", data: paginatedProducts });
 
     } catch (error) {
         console.log(error);
@@ -143,6 +146,7 @@ exports.getProductById = async (req, res) => {
         return res.status(500).json({ status: 500, success: false, message: error.message })
     }
 }
+
 exports.updateProductById = async (req, res) => {
     try {
         const id = req.params.id;

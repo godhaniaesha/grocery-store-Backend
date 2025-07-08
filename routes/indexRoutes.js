@@ -103,7 +103,7 @@ indexRoutes.get('/allMyAddress', auth(['admin', 'user']), getAllMyAddress)
 
 // product Routes
 
-indexRoutes.post('/createProduct', auth(['admin', 'user']), upload.fields([{ name: 'images' }]), createProduct)
+indexRoutes.post('/createProducts', auth(['admin', 'user']), upload.fields([{ name: 'images' }, { name: 'otherField' }]), createProduct)
 indexRoutes.get('/allProducts', getAllProducts)
 indexRoutes.get('/getProduct/:id', auth(['admin', 'user']), getProductById)
 indexRoutes.put('/updateProduct/:id', auth(['admin', 'user']), upload.fields([{ name: 'images' }]), updateProductById)
