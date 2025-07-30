@@ -1,9 +1,22 @@
 const cart = require('../models/cartModels')
 const mongoose = require('mongoose')
+const stock = require('../models/stockModels');
 
 exports.createCart = async (req, res) => {
     try {
+        
         let { productId, productVarientId, quantity } = req.body
+
+        // Stock check logic
+        let stockProduct = await stock.findOne({ productId });
+        // console.log(stockProduct,'stockProduct');
+        
+        if (!stockProduct) {
+            return res.status(404).json({ status: 404, success: false, message: "Product is out of stock" });
+        }
+        if (stockProduct.quantity < quantity) {
+            return res.status(400).json({ status: 400, success: false, message: `Only ${stockProduct.quantity} items left in stock` });
+        }
 
         let checkExistCartProduct = await cart.findOne({ userId: req.user._id, productId, productVarientId })
 
@@ -170,7 +183,7 @@ exports.getAllMyCarts = async (req, res) => {
 
         let paginatedMyCarts;
 
-        paginatedMyCarts = await cart.aggregate([
+        paginatedMyCarts = await cart.aggregate([ 
             {
                 $match: {
                     userId: req.user._id
